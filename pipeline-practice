@@ -1,0 +1,60 @@
+trigger:  none
+parameters:
+- name: terraforminstall
+  type: boolean
+  default: false
+
+- name: terraforminit
+  type: boolean
+  default: false
+
+- name: terraformvalidate
+  type: boolean
+  default: false
+
+- name: terraformplan
+  type: boolean
+  default: false
+
+pool:  devkapool
+variables:  
+  souravconfig : '$(System.DefaultWorkingDirectory)/environment'
+  serviceconnect : 'souravkumar'
+
+steps:
+  - task: TerraformInstaller@1
+    condition: ${{parameters.terraforminstall}}
+    inputs:
+      terraformVersion: 'latest'
+
+  - task: TerraformTask@5
+    displayName: init hogaya
+    condition: ${{parameters.terraforminit}}
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: $(souravconfig)
+      backendServiceArm: $(serviceconnect)
+      backendAzureRmStorageAccountName: 'bappastatestorage'
+      backendAzureRmContainerName: 'statecontainer'
+      backendAzureRmKey: 'skk.tfstate'
+
+  - task: TerraformTask@5
+    displayName: validate hogaya
+    condition: ${{parameters.terraformvalidate}}
+    inputs:
+      provider: 'azurerm'
+      command: 'validate'
+      workingDirectory: $(souravconfig)
+
+
+  - task: TerraformTask@5
+    displayName: plan chalgaya
+    condition: ${{parameters.terraformplan}}
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      workingDirectory: $(souravconfig)
+      environmentServiceNameAzureRM:  $(serviceconnect)
+  
+  
